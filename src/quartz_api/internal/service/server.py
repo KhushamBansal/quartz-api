@@ -3,19 +3,18 @@
 import logging
 import os
 import sys
-
-from fastapi import FastAPI, status, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
-from pydantic import BaseModel
-from fastapi.responses import FileResponse
 from importlib.metadata import version
 
+from fastapi import FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+
+from quartz_api.cmd.redoc_theme import get_redoc_html_with_theme
 from quartz_api.internal.service.database_client import get_db_client
 from quartz_api.internal.service.regions import router as regions_router
 from quartz_api.internal.service.sites import router as sites_router
-from quartz_api.cmd.redoc_theme import get_redoc_html_with_theme
-
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 log = logging.getLogger(__name__)
@@ -109,7 +108,7 @@ async def save_api_request_to_db(request: Request, call_next):
     email = None
     # Check if the request has an auth object to avoid error
     if hasattr(request.state, "auth"):
-        auth = getattr(request.state, "auth")
+        auth = request.state.auth
         email = auth.get("https://openclimatefix.org/email")
 
     # TODO: store the referer in the DB
@@ -148,7 +147,7 @@ def get_health_route() -> GetHealthResponse:
 
 @server.get("/QUARTZSOLAR_LOGO_SECONDARY_BLACK_1.png", include_in_schema=False)
 def get_quartz_solar_logo():
-    "Serve the Quartz Solar logo."
+    """Serve the Quartz Solar logo."""
     return FileResponse(f"{folder}/QUARTZSOLAR_LOGO_SECONDARY_BLACK_1.png")
 
 @server.get("/docs", include_in_schema=False)
@@ -173,7 +172,7 @@ def custom_openapi():
         },
         license_info={
             "name": "MIT License",
-            "url": "https://github.com/openclimatefix/india-api/blob/main/LICENSE",
+            "url": "https://github.com/openclimatefix/quartz-api/blob/main/LICENSE",
         },
         routes=server.routes,
     )

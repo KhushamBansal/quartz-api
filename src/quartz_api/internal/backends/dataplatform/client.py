@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from typing_extensions import override
 
 from quartz_api.internal import models
+from quartz_api.internal.middleware.audit import get_oauth_id_from_sub
 
 from ..utils import get_window
 
@@ -187,9 +188,10 @@ class Client(models.DatabaseInterface):
         req = dp.ListLocationsRequest(
             energy_source_filter=dp.EnergySource.SOLAR,
             location_type_filter=dp.LocationType.PRIMARY_SUBSTATION,
-            user_oauth_id_filter=authdata["sub"],
+            user_oauth_id_filter=get_oauth_id_from_sub(authdata["sub"]),
         )
         resp = await self.dp_client.list_locations(req)
+
         return [
             models.Substation(
                 substation_uuid=loc.location_uuid,
@@ -215,7 +217,7 @@ class Client(models.DatabaseInterface):
             location_uuids_filter=[str(substation_uuid)],
             energy_source_filter=dp.EnergySource.SOLAR,
             location_type_filter=dp.LocationType.PRIMARY_SUBSTATION,
-            user_oauth_id_filter=authdata["sub"],
+            user_oauth_id_filter=get_oauth_id_from_sub(authdata["sub"]),
         )
         resp = await self.dp_client.list_locations(req)
         if len(resp.locations) == 0:
@@ -229,7 +231,7 @@ class Client(models.DatabaseInterface):
         req = dp.ListLocationsRequest(
             enclosed_location_uuid_filter=[str(substation_uuid)],
             location_type_filter=dp.LocationType.GSP,
-            user_oauth_id_filter=authdata["sub"],
+            user_oauth_id_filter=get_oauth_id_from_sub(authdata["sub"]),
         )
         gsps = await self.dp_client.list_locations(req)
         if len(gsps.locations) == 0:
